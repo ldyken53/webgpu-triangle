@@ -13,153 +13,40 @@
     var canvas = document.getElementById("webgpu-canvas");
     var context = canvas.getContext("webgpu");
 
-    // Embedded SPV bytecode for our shaders
-    const triangle_vert_spv = new Uint32Array([
-        0x07230203,0x00010000,0x000d0008,0x00000020,
-        0x00000000,0x00020011,0x00000001,0x0006000b,
-        0x00000001,0x4c534c47,0x6474732e,0x3035342e,
-        0x00000000,0x0003000e,0x00000000,0x00000001,
-        0x0009000f,0x00000000,0x00000004,0x6e69616d,
-        0x00000000,0x00000009,0x0000000b,0x00000012,
-        0x0000001c,0x00030003,0x00000002,0x000001c2,
-        0x000a0004,0x475f4c47,0x4c474f4f,0x70635f45,
-        0x74735f70,0x5f656c79,0x656e696c,0x7269645f,
-        0x69746365,0x00006576,0x00080004,0x475f4c47,
-        0x4c474f4f,0x6e695f45,0x64756c63,0x69645f65,
-        0x74636572,0x00657669,0x00040005,0x00000004,
-        0x6e69616d,0x00000000,0x00040005,0x00000009,
-        0x6c6f6366,0x0000726f,0x00040005,0x0000000b,
-        0x6c6f6376,0x0000726f,0x00060005,0x00000010,
-        0x505f6c67,0x65567265,0x78657472,0x00000000,
-        0x00060006,0x00000010,0x00000000,0x505f6c67,
-        0x7469736f,0x006e6f69,0x00070006,0x00000010,
-        0x00000001,0x505f6c67,0x746e696f,0x657a6953,
-        0x00000000,0x00070006,0x00000010,0x00000002,
-        0x435f6c67,0x4470696c,0x61747369,0x0065636e,
-        0x00070006,0x00000010,0x00000003,0x435f6c67,
-        0x446c6c75,0x61747369,0x0065636e,0x00030005,
-        0x00000012,0x00000000,0x00050005,0x00000016,
-        0x77656956,0x61726150,0x0000736d,0x00060006,
-        0x00000016,0x00000000,0x77656976,0x6f72705f,
-        0x0000006a,0x00030005,0x00000018,0x00000000,
-        0x00030005,0x0000001c,0x00736f70,0x00040047,
-        0x00000009,0x0000001e,0x00000000,0x00040047,
-        0x0000000b,0x0000001e,0x00000001,0x00050048,
-        0x00000010,0x00000000,0x0000000b,0x00000000,
-        0x00050048,0x00000010,0x00000001,0x0000000b,
-        0x00000001,0x00050048,0x00000010,0x00000002,
-        0x0000000b,0x00000003,0x00050048,0x00000010,
-        0x00000003,0x0000000b,0x00000004,0x00030047,
-        0x00000010,0x00000002,0x00040048,0x00000016,
-        0x00000000,0x00000005,0x00050048,0x00000016,
-        0x00000000,0x00000023,0x00000000,0x00050048,
-        0x00000016,0x00000000,0x00000007,0x00000010,
-        0x00030047,0x00000016,0x00000002,0x00040047,
-        0x00000018,0x00000022,0x00000000,0x00040047,
-        0x00000018,0x00000021,0x00000000,0x00040047,
-        0x0000001c,0x0000001e,0x00000000,0x00020013,
-        0x00000002,0x00030021,0x00000003,0x00000002,
-        0x00030016,0x00000006,0x00000020,0x00040017,
-        0x00000007,0x00000006,0x00000004,0x00040020,
-        0x00000008,0x00000003,0x00000007,0x0004003b,
-        0x00000008,0x00000009,0x00000003,0x00040020,
-        0x0000000a,0x00000001,0x00000007,0x0004003b,
-        0x0000000a,0x0000000b,0x00000001,0x00040015,
-        0x0000000d,0x00000020,0x00000000,0x0004002b,
-        0x0000000d,0x0000000e,0x00000001,0x0004001c,
-        0x0000000f,0x00000006,0x0000000e,0x0006001e,
-        0x00000010,0x00000007,0x00000006,0x0000000f,
-        0x0000000f,0x00040020,0x00000011,0x00000003,
-        0x00000010,0x0004003b,0x00000011,0x00000012,
-        0x00000003,0x00040015,0x00000013,0x00000020,
-        0x00000001,0x0004002b,0x00000013,0x00000014,
-        0x00000000,0x00040018,0x00000015,0x00000007,
-        0x00000004,0x0003001e,0x00000016,0x00000015,
-        0x00040020,0x00000017,0x00000002,0x00000016,
-        0x0004003b,0x00000017,0x00000018,0x00000002,
-        0x00040020,0x00000019,0x00000002,0x00000015,
-        0x0004003b,0x0000000a,0x0000001c,0x00000001,
-        0x00050036,0x00000002,0x00000004,0x00000000,
-        0x00000003,0x000200f8,0x00000005,0x0004003d,
-        0x00000007,0x0000000c,0x0000000b,0x0003003e,
-        0x00000009,0x0000000c,0x00050041,0x00000019,
-        0x0000001a,0x00000018,0x00000014,0x0004003d,
-        0x00000015,0x0000001b,0x0000001a,0x0004003d,
-        0x00000007,0x0000001d,0x0000001c,0x00050091,
-        0x00000007,0x0000001e,0x0000001b,0x0000001d,
-        0x00050041,0x00000008,0x0000001f,0x00000012,
-        0x00000014,0x0003003e,0x0000001f,0x0000001e,
-        0x000100fd,0x00010038]);
-    const triangle_frag_spv = new Uint32Array([
-        0x07230203,0x00010000,0x000d0008,0x0000000d,
-        0x00000000,0x00020011,0x00000001,0x0006000b,
-        0x00000001,0x4c534c47,0x6474732e,0x3035342e,
-        0x00000000,0x0003000e,0x00000000,0x00000001,
-        0x0007000f,0x00000004,0x00000004,0x6e69616d,
-        0x00000000,0x00000009,0x0000000b,0x00030010,
-        0x00000004,0x00000007,0x00030003,0x00000002,
-        0x000001c2,0x000a0004,0x475f4c47,0x4c474f4f,
-        0x70635f45,0x74735f70,0x5f656c79,0x656e696c,
-        0x7269645f,0x69746365,0x00006576,0x00080004,
-        0x475f4c47,0x4c474f4f,0x6e695f45,0x64756c63,
-        0x69645f65,0x74636572,0x00657669,0x00040005,
-        0x00000004,0x6e69616d,0x00000000,0x00040005,
-        0x00000009,0x6f6c6f63,0x00000072,0x00040005,
-        0x0000000b,0x6c6f6366,0x0000726f,0x00040047,
-        0x00000009,0x0000001e,0x00000000,0x00040047,
-        0x0000000b,0x0000001e,0x00000000,0x00020013,
-        0x00000002,0x00030021,0x00000003,0x00000002,
-        0x00030016,0x00000006,0x00000020,0x00040017,
-        0x00000007,0x00000006,0x00000004,0x00040020,
-        0x00000008,0x00000003,0x00000007,0x0004003b,
-        0x00000008,0x00000009,0x00000003,0x00040020,
-        0x0000000a,0x00000001,0x00000007,0x0004003b,
-        0x0000000a,0x0000000b,0x00000001,0x00050036,
-        0x00000002,0x00000004,0x00000000,0x00000003,
-        0x000200f8,0x00000005,0x0004003d,0x00000007,
-        0x0000000c,0x0000000b,0x0003003e,0x00000009,
-        0x0000000c,0x000100fd,0x00010038]);
-
     // Setup shader modules
-    var vertModule = device.createShaderModule({code: triangle_vert_spv});
+    var vertModule = device.createShaderModule({ code: triangle_vert_spv });
     var vertex = {
         module: vertModule,
         entryPoint: "main",
         buffers: [
             {
-                arrayStride: 2 * 4 * 4,
+                arrayStride: 4 * 4,
                 attributes: [
                     {
                         format: "float32x4",
                         offset: 0,
-                        shaderLocation: 0
-                    },
-                    {
-                        format: "float32x4",
-                        offset: 4 * 4,
-                        shaderLocation: 1
+                        shaderLocation: 0,
                     }
-                ]
-            }
-        ]
+                ],
+            },
+        ],
     }
 
-    var fragModule = device.createShaderModule({code: triangle_frag_spv});
+    var fragModule = device.createShaderModule({ code: triangle_frag_spv });
 
-    // Specify vertex data
     var dataBuf = device.createBuffer({
-        size: 3 * 2 * 4 * 4,
+        size: 6 * 4 * 4,
         usage: GPUBufferUsage.VERTEX,
-        mappedAtCreation: true,
+        mappedAtCreation: true
     });
     // Interleaved positions and colors
     new Float32Array(dataBuf.getMappedRange()).set([
-        1, -1, 0, 1,
-        1, 0, 0, 1,
-        -1, -1, 0, 1,
-        0, 1, 0, 1,
-        0, 1, 0, 1,
-        0, 0, 1, 1,
+        1, -1, 0, 1,  // position
+        -1, -1, 0, 1, // position
+        -1, 1, 0, 1,   // position
+        1, -1, 0, 1,  // position
+        -1, 1, 0, 1, // position
+        1, 1, 0, 1,   // position
     ]);
     dataBuf.unmap();
 
@@ -192,12 +79,31 @@
                 buffer: {
                     type: 'uniform'
                 }
-            }
+            },
+            {
+                binding: 1,
+                // One or more stage flags, or'd together
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: {}
+            },
+            {
+                binding: 2,
+                // One or more stage flags, or'd together
+                visibility: GPUShaderStage.FRAGMENT,
+                sampler: {}
+            },
+            {
+                binding: 3,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: {
+                    type: 'storage'
+                }
+            },
         ]
     });
 
     // Create render pipeline
-    var layout = device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
+    var layout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
     var renderPipeline = device.createRenderPipeline({
         layout: layout,
@@ -206,19 +112,19 @@
             module: fragModule,
             entryPoint: "main",
             targets: [
-              {
-                format: swapChainFormat
-              },
+                {
+                    format: swapChainFormat
+                },
             ],
-          },
-          primitive: {
+        },
+        primitive: {
             topology: 'triangle-list',
-          },
-          depthStencil: {
+        },
+        depthStencil: {
             format: depthFormat,
             depthWriteEnabled: true,
             depthCompare: "less",
-          },
+        },
     });
 
     var renderPassDesc = {
@@ -235,6 +141,50 @@
         }
     };
 
+    // Create our sampler
+    const sampler = device.createSampler({
+        magFilter: "linear",
+        minFilter: "linear",
+    });
+
+    // Load the default colormap and upload it
+    var colormapImage = new Image();
+    colormapImage.src = "colormaps/rainbow.png";
+    await colormapImage.decode();
+    const imageBitmap = await createImageBitmap(colormapImage);
+    var colorTexture = device.createTexture({
+        size: [imageBitmap.width, imageBitmap.height, 1],
+        format: "rgba8unorm",
+        usage: GPUTextureUsage.SAMPLED | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+    device.queue.copyExternalImageToTexture(
+        { source: imageBitmap },
+        { texture: colorTexture },
+        [imageBitmap.width, imageBitmap.height, 1]
+    );
+    var adjacencyMatrix = [];
+    var matrixSize = 10000;
+    for (var i = 0; i < matrixSize; i++) {
+        for (var j = 0; j < matrixSize; j++) {
+            adjacencyMatrix.push(0);
+        }
+    }
+    // for (var i = 0; i < matrixSize; i++) {
+    //     for (var j = 0; j < i; j++) {
+    //         var x = Math.random();
+    //         adjacencyMatrix[i + matrixSize * j] = x;
+    //         adjacencyMatrix[j + matrixSize * i] = x;
+    //     }
+    // }
+    console.log(adjacencyMatrix);
+    this.matrixBuffer = device.createBuffer({
+        size: adjacencyMatrix.length * 4,
+        usage: GPUBufferUsage.STORAGE,
+        mappedAtCreation: true,
+    });
+    new Float32Array(this.matrixBuffer.getMappedRange()).set(adjacencyMatrix);
+    this.matrixBuffer.unmap();
+
     // Create a buffer to store the view parameters
     var viewParamsBuffer = device.createBuffer({
         size: 16 * 4,
@@ -250,7 +200,21 @@
                 resource: {
                     buffer: viewParamsBuffer
                 }
-            }
+            },
+            {
+                binding: 1,
+                resource: colorTexture.createView(),
+            },
+            {
+                binding: 2,
+                resource: sampler,
+            },
+            {
+                binding: 3,
+                resource: {
+                    buffer: matrixBuffer,
+                }
+            },
         ]
     });
 
@@ -265,7 +229,7 @@
     // Controller utility for interacting with the canvas and driving
     // the arcball camera
     var controller = new Controller();
-    controller.mousemove = function(prev, cur, evt) {
+    controller.mousemove = function (prev, cur, evt) {
         if (evt.buttons == 1) {
             camera.rotate(prev, cur);
 
@@ -273,22 +237,22 @@
             camera.pan([cur[0] - prev[0], prev[1] - cur[1]]);
         }
     };
-    controller.wheel = function(amt) { camera.zoom(amt * 0.5); };
+    controller.wheel = function (amt) { camera.zoom(amt * 0.5); };
     controller.registerForCanvas(canvas);
 
     // Not covered in the tutorial: track when the canvas is visible
     // on screen, and only render when it is visible.
     var canvasVisible = false;
-    var observer = new IntersectionObserver(function(e) {
+    var observer = new IntersectionObserver(function (e) {
         if (e[0].isIntersecting) {
             canvasVisible = true;
         } else {
             canvasVisible = false;
         }
-    }, {threshold: [0]});
+    }, { threshold: [0] });
     observer.observe(canvas);
 
-    var frame = function() {
+    var frame = function () {
         if (canvasVisible) {
             renderPassDesc.colorAttachments[0].view =
                 context.getCurrentTexture().createView();
@@ -313,7 +277,7 @@
             renderPass.setPipeline(renderPipeline);
             renderPass.setVertexBuffer(0, dataBuf);
             renderPass.setBindGroup(0, bindGroup);
-            renderPass.draw(3, 1, 0, 0);
+            renderPass.draw(6, 1, 0, 0);
 
             renderPass.endPass();
             device.queue.submit([commandEncoder.finish()]);
