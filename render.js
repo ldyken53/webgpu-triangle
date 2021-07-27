@@ -14,7 +14,7 @@
     var context = canvas.getContext("webgpu");
 
     // Setup shader modules
-    var vertModule = device.createShaderModule({ code: triangle_vert_spv });
+    var vertModule = device.createShaderModule({ code: vert_shader });
     var vertex = {
         module: vertModule,
         entryPoint: "main",
@@ -32,7 +32,7 @@
         ],
     }
 
-    var fragModule = device.createShaderModule({ code: triangle_frag_spv });
+    var fragModule = device.createShaderModule({ code: frag_shader });
 
     var dataBuf = device.createBuffer({
         size: 6 * 4 * 4,
@@ -70,43 +70,7 @@
         usage: GPUTextureUsage.RENDER_ATTACHMENT
     });
 
-    // Create the bind group layout
-    var bindGroupLayout = device.createBindGroupLayout({
-        entries: [
-            {
-                binding: 0,
-                visibility: GPUShaderStage.VERTEX,
-                buffer: {
-                    type: 'uniform'
-                }
-            },
-            {
-                binding: 1,
-                // One or more stage flags, or'd together
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: {}
-            },
-            {
-                binding: 2,
-                // One or more stage flags, or'd together
-                visibility: GPUShaderStage.FRAGMENT,
-                sampler: {}
-            },
-            {
-                binding: 3,
-                visibility: GPUShaderStage.FRAGMENT,
-                buffer: {
-                    type: 'storage'
-                }
-            },
-        ]
-    });
-
-    // Create render pipeline
-    var layout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
-
     var renderPipeline = device.createRenderPipeline({
-        layout: layout,
         vertex: vertex,
         fragment: {
             module: fragModule,
@@ -162,13 +126,13 @@
         { texture: colorTexture },
         [imageBitmap.width, imageBitmap.height, 1]
     );
-    var adjacencyMatrix = [];
-    var matrixSize = 10000;
-    for (var i = 0; i < matrixSize; i++) {
-        for (var j = 0; j < matrixSize; j++) {
-            adjacencyMatrix.push(0);
-        }
-    }
+    // var adjacencyMatrix = [];
+    // var matrixSize = 10000;
+    // for (var i = 0; i < matrixSize; i++) {
+    //     for (var j = 0; j < matrixSize; j++) {
+    //         adjacencyMatrix.push(0);
+    //     }
+    // }
     // for (var i = 0; i < matrixSize; i++) {
     //     for (var j = 0; j < i; j++) {
     //         var x = Math.random();
@@ -176,14 +140,14 @@
     //         adjacencyMatrix[j + matrixSize * i] = x;
     //     }
     // }
-    console.log(adjacencyMatrix);
-    this.matrixBuffer = device.createBuffer({
-        size: adjacencyMatrix.length * 4,
-        usage: GPUBufferUsage.STORAGE,
-        mappedAtCreation: true,
-    });
-    new Float32Array(this.matrixBuffer.getMappedRange()).set(adjacencyMatrix);
-    this.matrixBuffer.unmap();
+    // // console.log(adjacencyMatrix);
+    // this.matrixBuffer = device.createBuffer({
+    //     size: adjacencyMatrix.length * 4,
+    //     usage: GPUBufferUsage.STORAGE,
+    //     mappedAtCreation: true,
+    // });
+    // new Float32Array(this.matrixBuffer.getMappedRange()).set(adjacencyMatrix);
+    // this.matrixBuffer.unmap();
 
     // Create a buffer to store the view parameters
     var viewParamsBuffer = device.createBuffer({
@@ -193,7 +157,7 @@
 
     // Create a bind group which places our view params buffer at binding 0
     var bindGroup = device.createBindGroup({
-        layout: bindGroupLayout,
+        layout: renderPipeline.getBindGroupLayout(0),
         entries: [
             {
                 binding: 0,
@@ -209,12 +173,12 @@
                 binding: 2,
                 resource: sampler,
             },
-            {
-                binding: 3,
-                resource: {
-                    buffer: matrixBuffer,
-                }
-            },
+            // {
+            //     binding: 3,
+            //     resource: {
+            //         buffer: matrixBuffer,
+            //     }
+            // },
         ]
     });
 
