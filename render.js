@@ -105,12 +105,6 @@
         }
     };
 
-    // Create our sampler
-    const sampler = device.createSampler({
-        magFilter: "linear",
-        minFilter: "linear",
-    });
-
     // Load the default colormap and upload it
     var colormapImage = new Image();
     colormapImage.src = "colormaps/rainbow.png";
@@ -126,28 +120,29 @@
         { texture: colorTexture },
         [imageBitmap.width, imageBitmap.height, 1]
     );
-    // var adjacencyMatrix = [];
-    // var matrixSize = 10000;
-    // for (var i = 0; i < matrixSize; i++) {
-    //     for (var j = 0; j < matrixSize; j++) {
-    //         adjacencyMatrix.push(0);
-    //     }
-    // }
-    // for (var i = 0; i < matrixSize; i++) {
-    //     for (var j = 0; j < i; j++) {
-    //         var x = Math.random();
-    //         adjacencyMatrix[i + matrixSize * j] = x;
-    //         adjacencyMatrix[j + matrixSize * i] = x;
-    //     }
-    // }
-    // // console.log(adjacencyMatrix);
-    // this.matrixBuffer = device.createBuffer({
-    //     size: adjacencyMatrix.length * 4,
-    //     usage: GPUBufferUsage.STORAGE,
-    //     mappedAtCreation: true,
-    // });
-    // new Float32Array(this.matrixBuffer.getMappedRange()).set(adjacencyMatrix);
-    // this.matrixBuffer.unmap();
+    var adjacencyMatrix = [];
+    var matrixSize = 1000;
+    adjacencyMatrix.push(matrixSize);
+    for (var i = 0; i < matrixSize; i++) {
+        for (var j = 0; j < matrixSize; j++) {
+            adjacencyMatrix.push(0);
+        }
+    }
+    for (var i = 0; i < matrixSize; i++) {
+        for (var j = 0; j < i; j++) {
+            var x = Math.random();
+            adjacencyMatrix[i + matrixSize * j + 1] = x;
+            adjacencyMatrix[j + matrixSize * i + 1] = x;
+        }
+    }
+    console.log(adjacencyMatrix);
+    this.matrixBuffer = device.createBuffer({
+        size: 134217728,
+        usage: GPUBufferUsage.STORAGE,
+        mappedAtCreation: true,
+    });
+    new Float32Array(this.matrixBuffer.getMappedRange()).set(adjacencyMatrix);
+    this.matrixBuffer.unmap();
 
     // Create a buffer to store the view parameters
     var viewParamsBuffer = device.createBuffer({
@@ -171,14 +166,10 @@
             },
             {
                 binding: 2,
-                resource: sampler,
+                resource: {
+                    buffer: matrixBuffer,
+                }
             },
-            // {
-            //     binding: 3,
-            //     resource: {
-            //         buffer: matrixBuffer,
-            //     }
-            // },
         ]
     });
 
